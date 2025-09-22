@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metaphony</title>
+  <link rel="icon" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+      text-align: center;
+    }
+
+    #game-container {
+      background: white;
+      padding: 2em;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 600px;
+    }
+
+    .screen {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    p {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    button, .choice, .button-label {
+      padding: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s, transform 0.1s;
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    button, .button-label {
+      background-color: #FFBE08;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover, .button-label:hover {
+      background-color: #e5a907;
+      transform: translateY(-2px);
+    }
+
+    .choice-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1em;
+    }
+
+    .choice-buttons button {
+      flex: 1;
+      background-color: transparent;
+      border: 2px solid #FFBE08;
+      color: #FFBE08;
+    }
+
+    .choice-buttons button.selected {
+      background-color: #FFBE08;
+      color: white;
+    }
+
+    .choice {
+      background-color: #e9e9e9;
+      color: #333;
+      text-align: left;
+    }
+
+    .choice:hover {
+      background-color: #dcdcdc;
+    }
+
+    .choice.correct {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .choice.incorrect {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .choice.disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    #question-choices {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      margin-top: 1em;
+    }
+
+    #score-display {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .custom-play-btn {
+      margin-top: 1em;
+      background-color: #28a745;
+    }
+    .custom-play-btn:hover {
+      background-color: #218838;
+    }
+
+    #import-custom-file {
+      display: none;
+    }
+
+    #file-name {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 0.5em;
+    }
+
+  </style>
+</head>
+<body>
+<div id="game-container">
+  <div id="title-screen" class="screen">
+    <img src="metaphonyLogo.png" style="padding-top: 32px">
+    <p>Welcome to metaphony! Your goal is to identify the best figurative analogy among a selection of ridiculous choices. See how many you can get right before making a mistake! Or upload your own list for a more tailored experience.</p>
+    <button id="play-standard-btn">Play Standard</button>
+    <button id="play-custom-btn">Play Custom</button>
+  </div>
+
+  <div id="custom-setup-screen" class="screen hidden">
+    <h2>Custom Game Setup</h2>
+    <p>To play a custom game, you'll need to create a list of metaphors. Please follow these steps:</p>
+    <ol style="text-align: left">
+      <li>Download the blank template file CSV file.</li>
+      <li>Open the file with a program like Google Sheets or Excel.</li>
+      <li>Fill in your own good and bad metaphors, one per row.</li>
+      <li>Export your completed file as a CSV.</li>
+      <li>Import your new CSV file below and play!</li>
+    </ol>
+    <button id="download-template-btn">Download Template (csv file)</button>
+    <label for="import-custom-file" class="button-label">
+      <input type="file" id="import-custom-file" accept=".csv">
+      <span>Choose File</span>
+    </label>
+    <div id="file-name"></div>
+    <button id="back-to-menu-btn-custom">Back to Menu</button>
+    <p id="custom-message"></p>
+    <button id="start-custom-game-btn" class="hidden custom-play-btn">Start Custom Game</button>
+  </div>
+
+  <div id="game-settings-screen" class="screen hidden">
+    <h2>Game Settings</h2>
+    <p>Choose how many analogies to display per question:</p>
+    <div class="choice-buttons">
+      <button id="choices-2-btn" class="selected">2</button>
+      <button id="choices-3-btn">3</button>
+      <button id="choices-4-btn">4</button>
+    </div>
+    <button id="start-standard-game-btn">Start Game</button>
+    <button id="back-to-menu-btn-settings">Back to Menu</button>
+  </div>
+
+  <div id="game-screen" class="screen hidden">
+    <h2 id="prompt-text">Choose the best analogy</h2>
+    <div id="score-display">Score: <span id="current-score">0</span></div>
+    <div id="question-choices">
+    </div>
+    <button id="next-question-btn" class="hidden">Next Question</button>
+
+    <div id="inline-game-over-screen" class="screen hidden">
+      <h1>Game Over!</h1>
+      <p>Your final score is: <span id="final-score">0</span></p>
+      <button id="play-again-btn">Play Again</button>
+      <button id="back-to-menu-btn-over">Back to Menu</button>
+    </div>
+  </div>
+
+</div>
+<script>
+  const screens = {
+    title: document.getElementById('title-screen'),
+    customSetup: document.getElementById('custom-setup-screen'),
+    gameSettings: document.getElementById('game-settings-screen'),
+    game: document.getElementById('game-screen'),
+    inlineGameOver: document.getElementById('inline-game-over-screen')
+  };
+
+  const buttons = {
+    playStandard: document.getElementById('play-standard-btn'),
+    playCustom: document.getElementById('play-custom-btn'),
+    downloadTemplate: document.getElementById('download-template-btn'),
+    importCustomFile: document.getElementById('import-custom-file'),
+    backToMenuCustom: document.getElementById('back-to-menu-btn-custom'),
+    startStandardGame: document.getElementById('start-standard-game-btn'),
+    startCustomGame: document.getElementById('start-custom-game-btn'),
+    backToMenuSettings: document.getElementById('back-to-menu-btn-settings'),
+    playAgain: document.getElementById('play-again-btn'),
+    backToMenuOver: document.getElementById('back-to-menu-btn-over'),
+    nextQuestion: document.getElementById('next-question-btn'),
+    choices2: document.getElementById('choices-2-btn'),
+    choices3: document.getElementById('choices-3-btn'),
+    choices4: document.getElementById('choices-4-btn'),
+  };
+
+  const elements = {
+    scoreDisplay: document.getElementById('current-score'),
+    finalScore: document.getElementById('final-score'),
+    questionChoices: document.getElementById('question-choices'),
+    customMessage: document.getElementById('custom-message'),
+    fileNameDisplay: document.getElementById('file-name')
+  };
+
+  const defaultMetaphors = {
+    good: [
+      "As smooth as silk.",
+      "As quiet as a mouse.",
+      "As hungry as a bear after hibernation.",
+      "As bright as a flashlight in the dark.",
+      "As fast as a cheetah.",
+      "As slow as a snail on vacation.",
+      "As busy as a beaver.",
+      "As messy as a pig in mud.",
+      "As sweet as candy.",
+      "As sharp as a tack.",
+      "As tall as a giraffe.",
+      "As bouncy as a basketball.",
+      "As loud as fireworks.",
+      "As cold as ice cream.",
+      "The classroom was a zoo.",
+      "His backpack is a boulder.",
+      "Her smile was sunshine.",
+      "The computer is a brain.",
+      "My little brother is a tornado.",
+      "The playground is a racetrack.",
+      "His stomach is a bottomless pit.",
+      "The teacher’s eyes were lasers.",
+      "The football was a rocket.",
+      "Their friendship is glue.",
+      "The night sky was a blanket.",
+      "My pencil is a sword.",
+      "The hallway was a river of kids.",
+      "Her voice was a bell.",
+      "The snow was a white blanket."
+    ],
+    bad: [
+      "Her smile was like a grin.",
+      "He was as tall as someone who wasn’t short.",
+      "The classroom was silent, like a room with no noise.",
+      "His beard was thick, like hair on a face.",
+      "She was as fast as a cheetah… but slower.",
+      "The pancake was flat, like a pancake.",
+      "His handwriting was messy, like handwriting that wasn’t neat.",
+      "She was as bright as a broken flashlight.",
+      "He was strong like a guy who could maybe lift something but not too heavy.",
+      "The chair was as sturdy as a chair that hadn’t broken yet.",
+      "His voice was deep, like the opposite of high.",
+      "The joke was funny like something you might laugh at a little.",
+      "She was as quiet as someone not talking.",
+      "The mountain was tall, like a hill but more.",
+      "His shoes were new, like shoes you just bought.",
+      "The dog was loyal, like a friend who’s a dog.",
+      "The movie was long, like a show that doesn’t end as quickly.",
+      "The car was fast, like a vehicle that goes quickly.",
+      "Her eyes twinkled, like the moustache of a man with a cold.",
+      "The ballerina rose gracefully en pointe and extended one slender leg behind her, like a dog at a fire hydrant.",
+      "She grew on him like she was a colony of E. coli and he was room temperature Canadian beef.",
+      "She had him like a toenail stuck in a shag carpet.",
+      "The lamp just sat there, like an inanimate object.",
+      "Her eyes were like two brown circles with big black dots in the center.",
+      "He was as tall as a 6'3\" tree.",
+      "Her face was a perfect oval, like a circle that had two sides elongated.",
+      "John and Mary have never met. They were like two hummingbirds who have also never met.",
+      "The revelation that his marriage of 30 years had disintegrated because of his wife’s infidelity came as a rude shock, like a surcharge at a formerly surcharge-free ATM.",
+      "He walked into my office like a centipede with 98 missing legs."
+    ]
+  };
+
+  let score = 0;
+  let choicesPerQuestion = 2;
+  let goodMetaphorsRemaining = [];
+  let badMetaphorsRemaining = [];
+  let customMetaphors = { good: [], bad: [] };
+  let isCustomGame = false;
+
+  function showScreen(screen) {
+    Object.values(screens).forEach(s => s.classList.add('hidden'));
+    screen.classList.remove('hidden');
+  }
+
+  function startGame() {
+    score = 0;
+    elements.scoreDisplay.textContent = score;
+
+    if (isCustomGame) {
+      goodMetaphorsRemaining = [...customMetaphors.good];
+      badMetaphorsRemaining = [...customMetaphors.bad];
+    } else {
+      goodMetaphorsRemaining = [...defaultMetaphors.good];
+      badMetaphorsRemaining = [...defaultMetaphors.bad];
+    }
+
+    screens.inlineGameOver.classList.add('hidden');
+    showScreen(screens.game);
+    buttons.nextQuestion.classList.add('hidden');
+    nextQuestion();
+  }
+
+  function nextQuestion() {
+    buttons.nextQuestion.classList.add('hidden');
+    elements.questionChoices.innerHTML = '';
+
+    if (badMetaphorsRemaining.length < choicesPerQuestion - 1 || goodMetaphorsRemaining.length === 0) {
+      if (isCustomGame) {
+        goodMetaphorsRemaining = [...customMetaphors.good];
+        badMetaphorsRemaining = [...customMetaphors.bad];
+      } else {
+        goodMetaphorsRemaining = [...defaultMetaphors.good];
+        badMetaphorsRemaining = [...defaultMetaphors.bad];
+      }
+    }
+
+    const goodIndex = Math.floor(Math.random() * goodMetaphorsRemaining.length);
+    const goodChoice = goodMetaphorsRemaining.splice(goodIndex, 1)[0];
+
+    const badChoices = [];
+    while (badChoices.length < choicesPerQuestion - 1) {
+      const randomIndex = Math.floor(Math.random() * badMetaphorsRemaining.length);
+      const choice = badMetaphorsRemaining.splice(randomIndex, 1)[0];
+      badChoices.push(choice);
+    }
+
+    let allChoices = [...badChoices, goodChoice];
+    allChoices = shuffleArray(allChoices);
+
+    allChoices.forEach(choiceText => {
+      const choiceDiv = document.createElement('div');
+      choiceDiv.classList.add('choice');
+      choiceDiv.textContent = choiceText;
+      choiceDiv.addEventListener('click', () => handleChoiceClick(choiceDiv, choiceText, goodChoice));
+      elements.questionChoices.appendChild(choiceDiv);
+    });
+  }
+
+  function handleChoiceClick(clickedDiv, clickedText, correctText) {
+    const allChoices = document.querySelectorAll('.choice');
+    allChoices.forEach(choice => {
+      choice.classList.add('disabled');
+      choice.style.pointerEvents = 'none';
+    });
+
+    if (clickedText === correctText) {
+      clickedDiv.classList.add('correct');
+      score++;
+      elements.scoreDisplay.textContent = score;
+      buttons.nextQuestion.classList.remove('hidden');
+    } else {
+      clickedDiv.classList.add('incorrect');
+      endGame();
+    }
+  }
+
+  function endGame() {
+    buttons.nextQuestion.classList.add('hidden');
+    elements.finalScore.textContent = score;
+    screens.inlineGameOver.classList.remove('hidden');
+  }
+
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function downloadTemplate() {
+    const csvContent = "Good Metaphors,Bad Metaphors\n";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "metaphony_template.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) {
+      elements.fileNameDisplay.textContent = '';
+      buttons.startCustomGame.classList.add('hidden');
+      return;
+    }
+
+    elements.fileNameDisplay.textContent = `Selected: ${file.name}`;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      if (lines.length < 2) {
+        elements.customMessage.textContent = 'Error: The file must contain at least one row of data.';
+        buttons.startCustomGame.classList.add('hidden');
+        return;
+      }
+
+      const newGood = [];
+      const newBad = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(',').map(item => item.trim());
+        if (row[0]) newGood.push(row[0]);
+        if (row[1]) newBad.push(row[1]);
+      }
+
+      if (newGood.length === 0 || newBad.length === 0) {
+        elements.customMessage.textContent = 'Error: The file must contain analogies in both columns.';
+        buttons.startCustomGame.classList.add('hidden');
+        return;
+      }
+
+      customMetaphors.good = newGood;
+      customMetaphors.bad = newBad;
+
+      elements.customMessage.textContent = `Successfully imported ${newGood.length + newBad.length} new analogies!`;
+      buttons.startCustomGame.classList.remove('hidden');
+    };
+    reader.readAsText(file);
+  }
+
+  const choiceButtons = [buttons.choices2, buttons.choices3, buttons.choices4];
+  choiceButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      choicesPerQuestion = parseInt(btn.textContent);
+      choiceButtons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  buttons.playStandard.addEventListener('click', () => {
+    isCustomGame = false;
+    showScreen(screens.gameSettings);
+  });
+
+  buttons.playCustom.addEventListener('click', () => {
+    elements.customMessage.textContent = '';
+    buttons.startCustomGame.classList.add('hidden');
+    showScreen(screens.customSetup);
+  });
+
+  buttons.downloadTemplate.addEventListener('click', downloadTemplate);
+  buttons.importCustomFile.addEventListener('change', handleFileImport);
+
+  buttons.startStandardGame.addEventListener('click', () => {
+    isCustomGame = false;
+    startGame();
+  });
+
+  buttons.startCustomGame.addEventListener('click', () => {
+    isCustomGame = true;
+    startGame();
+  });
+
+  buttons.nextQuestion.addEventListener('click', nextQuestion);
+
+  buttons.playAgain.addEventListener('click', () => {
+    if (isCustomGame) {
+      startGame();
+    } else {
+      startGame();
+    }
+  });
+
+  buttons.backToMenuCustom.addEventListener('click', () => showScreen(screens.title));
+  buttons.backToMenuSettings.addEventListener('click', () => showScreen(screens.title));
+  buttons.backToMenuOver.addEventListener('click', () => showScreen(screens.title));
+
+  showScreen(screens.title);
+</script>
+</body>
+</html>
