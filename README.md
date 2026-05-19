@@ -1,7 +1,7 @@
 <br>
 
 <p align="center">
- <img src="https://github.com/ssambender/metaphony/blob/main/metaphonyLogo.png?raw=true" alt="metaphony Logo" height="135">
+ <img src="metaphonyLogo.png" alt="metaphony Logo" height="135">
 </p>
 
 <h3 align="center">metaphony | figurative analogy trivia game</h3>
